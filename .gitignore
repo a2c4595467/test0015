@@ -127,3 +127,8 @@ dist
 .yarn/build-state.yml
 .yarn/install-state.gz
 .pnp.*
+
+# nginx proxy cert file
+nginx/certs/*.pem
+
+nginx/etc/nginx/conf.d/*.conf
