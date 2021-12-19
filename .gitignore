@@ -132,3 +132,6 @@ dist
 nginx/certs/*.pem
 
 nginx/etc/nginx/conf.d/*.conf
+nginx/etc/nginx/*.conf
+
+nginx/log/*

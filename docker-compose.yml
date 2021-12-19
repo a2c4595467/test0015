@@ -1,6 +1,5 @@
 version: '3.8'
 services:
-  #
   t015_proxy:
     env_file:
       - environment.env
@@ -12,7 +11,8 @@ services:
     volumes:
        - ./nginx/html:/var/www/html
        - ./nginx/log:/var/log/nginx
-       - ./nginx/cert:/tmp/certs
+       - ./nginx/certs:/tmp/certs
+       #- ./nginx/etc/nginx/nginx.conf:/etc/nginx/nginx.conf
        - ./work:/work
     environment:
       - TZ=${TZ}
@@ -40,7 +40,7 @@ services:
       - "3001:3001"
     tty: true
     command:
-      sh -c "nodemon -L /app/webserver.js"
+      sh -c "nodemon -L /app/src/webserver.js"
     depends_on:
       - t015_db_master
 

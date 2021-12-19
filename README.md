@@ -4,12 +4,12 @@
 
 Webサーバー、APPサーバー、DBサーバーをひととおり構築してみる。<br>
 <br>
-
+自己署名SSL証明書によるSSL通信をさせる。
 
 
 ## 謝辞
 
-先人たちの知恵に敬意と多謝。
+先人たちの努力と共有に敬意と多謝。
 
 <br>
 
@@ -36,6 +36,8 @@ Webサーバー、APPサーバー、DBサーバーをひととおり構築して
 ├ environment.env
 ├ nginx
 │ ├ Dockerfile
+│ ├ certs
+│ │ └ ここに証明書ファイルを設置してたがやめた
 │ ├ etc
 │ │ └ nginx
 │ │   └ nginx.conf
@@ -70,6 +72,51 @@ Webサーバー、APPサーバー、DBサーバーをひととおり構築して
 
 ---
 
+## ドメインと自己署名証明書
+
+開発環境といえど、IPアドレス＋ポート番号での運用ではなく、ドメインで運用したいので、リバースプロキシを構築。
+
+### ■hostsファイル
+
+VirtualBox のIPアドレスと、使用したいドメインを記述する。
+
+### ■使用できないドメイン
+
+* Macが参加するActiveDirectoryで問題が発生するらしいので、「.local」は使用しないほうがよい。
+* 「.dev」はGoogleが保有している。
+* 「.test」「.localhost」も予約語とされている。
+
+
+
+
+### ■自己署名証明書
+
+「omgwtfssl」コンテナをプルした後、以下のコマンドから証明書を生成。
+
+* サブドメイン１つずつ作るのは面倒なので、ワイルドカードとする
+* 証明書にSAN値がないと、Chromeで **ERR_CERT_COMMON_NAME_INVALID** エラーとなる。
+
+<br>
+
+```
+docker run --rm \
+-e SSL_SUBJECT="*.example.com" \
+-e SSL_DNS="example.com" \
+-e CA_EXPIRE=3650 \
+-e SSL_EXPIRE=3650 \
+-v /docker_data/my_cert/cert_data:/certs \
+paulczar/omgwtfssl
+```
+
+#### 参考URL
+
+自己署名証明書を生成してくれるdockerコンテナOMGWTFSSLを試す<br>
+https://mistymagich.wordpress.com/2019/04/15/%E8%87%AA%E5%B7%B1%E7%BD%B2%E5%90%8D%E8%A8%BC%E6%98%8E%E6%9B%B8%E3%82%92%E7%94%9F%E6%88%90%E3%81%97%E3%81%A6%E3%81%8F%E3%82%8C%E3%82%8Bdocker%E3%82%B3%E3%83%B3%E3%83%86%E3%83%8Aomgwtfssl%E3%82%92/
+
+<br>
+
+---
+
 ## ■ リバースプロキシ(Nginx)
 
 ### 参考URL
@@ -87,7 +134,7 @@ https://a-records.info/multiple-docker-compose-with-nginx-reverse-proxy/
 
 ---
 
-## ■ APPサーバー(Node.js)
+##  APPサーバー(Node.js)
 
 ### 参考URL
 
@@ -100,12 +147,11 @@ https://qiita.com/niwasawa/items/9673d31ee2a6c532dc5b
 Docker-composeを使ってnode.jsの環境構築をしてみたのよ。<br>
 https://qiita.com/art_porokyu/items/8363334c358c67adb61a
 
-
-
+<br>
 
 ---
 
-## ■ MySQL
+## MySQL
 
 ### ■起動のエラー
 ```
@@ -145,7 +191,8 @@ grant replication slave on *.* to 'slave_user'@'%' with grant option;
 flush privileges;
 ```
 
-・参考URL
+#### 参考URL
+
 MySQLのmaster slave構成をDockerで試す<br>
 https://raahii.github.io/posts/docker-mysql-master-slave-replication/
 
@@ -180,7 +227,8 @@ MASTER_SSL = 1,
 GET_MASTER_PUBLIC_KEY = 1; \
 ```
 
-・参考URL  
+#### 参考URL  
+
 MySQL8.0で新たに追加されているレプリケーション接続オプション<br>
 https://blog.s-style.co.jp/2020/03/5861/
 
@@ -188,8 +236,6 @@ https://blog.s-style.co.jp/2020/03/5861/
 https://qiita.com/nanorkyo/items/94a80683c6753f61316a#fn7
 
 <br>
-
----
 
 ### ■MySQLコンテナの日本語対応
 
@@ -225,8 +271,6 @@ https://qiita.com/oono_yoshi/items/4c9c2ea554b5626ff50c
 接続先プロファイルのドライバー設定から「allowPublicKeyRetrieval」をtrueにする必要がある。
 
 <br>
-
----
 
 ### ■コンテナへ入るコマンド
 
